@@ -93,7 +93,7 @@ class FSMap(MutableMapping):
 
         Parameters
         ----------
-        keys: list(str)
+        keys: iterable of str
             They keys to be fetched
         on_error : "raise", "omit", "return"
             If raise, an underlying exception will be raised (converted to KeyError
@@ -106,6 +106,7 @@ class FSMap(MutableMapping):
         -------
         dict(key, bytes|exception)
         """
+        keys = list(keys)
         keys2 = [self._key_to_str(k) for k in keys]
         oe = on_error if on_error == "raise" else "return"
         try:

@@ -41,21 +41,26 @@ def test_check_preserves_contents(tmp_path, protocol, key):
     assert dict(checked) == contents
 
 
-def test_getitems_errors(tmpdir):
+@pytest.mark.parametrize("keys_factory", [list, iter], ids=["list", "iterator"])
+def test_getitems_errors(tmpdir, keys_factory):
     tmpdir = str(tmpdir)
     os.makedirs(os.path.join(tmpdir, "afolder"))
     open(os.path.join(tmpdir, "afile"), "w").write("test")
     open(os.path.join(tmpdir, "afolder", "anotherfile"), "w").write("test2")
     m = fsspec.get_mapper(f"file://{tmpdir}")
-    assert m.getitems(["afile", "bfile"], on_error="omit") == {"afile": b"test"}
+    assert m.getitems(keys_factory(["afile", "bfile"]), on_error="omit") == {
+        "afile": b"test"
+    }
     with pytest.raises(KeyError):
-        m.getitems(["afile", "bfile"])
-    out = m.getitems(["afile", "bfile"], on_error="return")
+        m.getitems(keys_factory(["afile", "bfile"]))
+    out = m.getitems(keys_factory(["afile", "bfile"]), on_error="return")
     assert isinstance(out["bfile"], KeyError)
     m = fsspec.get_mapper(f"file://{tmpdir}", missing_exceptions=())
-    assert m.getitems(["afile", "bfile"], on_error="omit") == {"afile": b"test"}
+    assert m.getitems(keys_factory(["afile", "bfile"]), on_error="omit") == {
+        "afile": b"test"
+    }
     with pytest.raises(FileNotFoundError):
-        m.getitems(["afile", "bfile"])
+        m.getitems(keys_factory(["afile", "bfile"]))
 
 
 def test_ops():
@@ -99,12 +104,13 @@ def test_keys_view():
     m.clear()
 
 
-def test_multi():
+@pytest.mark.parametrize("keys_factory", [list, tuple, iter])
+def test_multi(keys_factory):
     m = fsspec.get_mapper("memory:///")
     data = {"a": b"data1", "b": b"data2"}
     m.setitems(data)
 
-    assert m.getitems(list(data)) == data
+    assert m.getitems(keys_factory(data)) == data
     m.delitems(list(data))
     assert not list(m)
 

@@ -17,6 +17,8 @@ Enhancements
 
 Fixes
 
+- Preserve iterator keys when associating bulk mapping reads with their results.
+
 - Honor the per-file ``cache_type`` option when opening FTP files.
 
 - Close internally opened TAR archive files and compression wrappers on explicit
